@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Finanz Tool</title>
+  <style>
+    :root{
+      --bg: #ffffff;
+      --card: #ffffff;
+      --text: #111111;
+      --muted: #666666;
+      --line: #e9e9e9;
+      --shadow: 0 10px 30px rgba(0,0,0,0.06);
+      --radius: 18px;
+
+      --green: #1c7c3a;
+      --red: #a32020;
+    }
+
+    *{ box-sizing: border-box; }
+    body{
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .wrap{
+      max-width: 1100px;
+      margin: 36px auto;
+      padding: 0 18px 60px;
+    }
+
+    .topbar{
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .brand{
+      font-weight: 650;
+      letter-spacing: .2px;
+      color: var(--text);
+      opacity: 0.9;
+    }
+
+    .summary{
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .pill{
+      border: 1px solid var(--line);
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: var(--card);
+      box-shadow: var(--shadow);
+      font-size: 14px;
+      color: var(--muted);
+      display: flex;
+      gap: 8px;
+      align-items: baseline;
+    }
+    .pill b{
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 650;
+    }
+    .pill .pos{ color: var(--green); }
+    .pill .neg{ color: var(--red); }
+
+    .grid{
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      position: relative;
+      margin-top: 16px;
+    }
+
+    .divider{
+      position: absolute;
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: var(--line);
+      transform: translateX(-50%);
+      border-radius: 2px;
+      pointer-events: none;
+    }
+
+    .panel{
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      min-height: 560px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .panel-header{
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .badge{
+      border: 1px solid var(--line);
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-weight: 700;
+      letter-spacing: .2px;
+      background: #fff;
+      min-width: 170px;
+      text-align: center;
+    }
+    .badge.income{ color: var(--green); }
+    .badge.expense{ color: var(--red); }
+
+    .list{
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px;
+      flex: 1;
+      overflow: auto;
+      background: #fff;
+    }
+
+    .row{
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 10px;
+      align-items: center;
+      padding: 10px 10px;
+      border-radius: 12px;
+    }
+
+    .row:hover{
+      background: #fafafa;
+    }
+
+    .name{
+      font-weight: 600;
+      color: var(--text);
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .amount{
+      font-variant-numeric: tabular-nums;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .amount.income{ color: var(--green); }
+    .amount.expense{ color: var(--red); }
+
+    .del{
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 10px;
+      padding: 8px 10px;
+      cursor: pointer;
+      color: var(--muted);
+      transition: 0.15s;
+    }
+    .del:hover{
+      color: var(--text);
+      border-color: #ddd;
+      transform: translateY(-1px);
+    }
+
+    .form{
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 10px;
+      display: grid;
+      grid-template-columns: 1fr 140px auto;
+      gap: 10px;
+      background: #fff;
+    }
+
+    .form input{
+      border: 0;
+      outline: none;
+      padding: 10px 12px;
+      border-radius: 999px;
+      font-size: 14px;
+      background: #fff;
+      color: var(--text);
+    }
+    .form input::placeholder{ color: #aaa; }
+
+    .btn{
+      border: 0;
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.15s;
+      white-space: nowrap;
+    }
+    .btn:active{ transform: translateY(1px); }
+
+    .btn.income{
+      background: rgba(28,124,58,0.10);
+      color: var(--green);
+    }
+    .btn.income:hover{ background: rgba(28,124,58,0.14); }
+
+    .btn.expense{
+      background: rgba(163,32,32,0.10);
+      color: var(--red);
+    }
+    .btn.expense:hover{ background: rgba(163,32,32,0.14); }
+
+    .hint{
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: -4px;
+      padding: 0 6px;
+    }
+
+    .empty{
+      padding: 20px 12px;
+      color: #999;
+      font-size: 14px;
+      text-align: center;
+    }
+
+    @media (max-width: 900px){
+      .grid{ grid-template-columns: 1fr; }
+      .divider{ display: none; }
+      .panel{ min-height: 520px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">Finanz Tool</div>
+      <div class="summary">
+        <div class="pill">Einnahmen <b id="sumIncome">0,00 €</b></div>
+        <div class="pill">Ausgaben <b id="sumExpense">0,00 €</b></div>
+        <div class="pill">Saldo <b id="saldo" class="pos">0,00 €</b></div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="divider"></div>
+
+      <!-- Einnahmen -->
+      <section class="panel" aria-label="Einnahmen">
+        <div class="panel-header">
+          <div class="badge income">Einnahmen</div>
+        </div>
+
+        <div class="list" id="incomeList"></div>
+
+        <form class="form" id="incomeForm" autocomplete="off">
+          <input id="incomeName" placeholder="Einnahme (z.B. Gehalt)" maxlength="60" />
+          <input id="incomeAmount" placeholder="Betrag (z.B. 12,99)" inputmode="decimal" />
+          <button class="btn income" type="submit">Hinzufügen</button>
+        </form>
+        <div class="hint">Tipp: Du kannst <b>12,99</b> oder <b>12.99</b> eingeben. Enter geht auch.</div>
+      </section>
+
+      <!-- Ausgaben -->
+      <section class="panel" aria-label="Ausgaben">
+        <div class="panel-header">
+          <div class="badge expense">Ausgaben</div>
+        </div>
+
+        <div class="list" id="expenseList"></div>
+
+        <form class="form" id="expenseForm" autocomplete="off">
+          <input id="expenseName" placeholder="Ausgabe (z.B. Miete)" maxlength="60" />
+          <input id="expenseAmount" placeholder="Betrag (z.B. 12,99)" inputmode="decimal" />
+          <button class="btn expense" type="submit">Hinzufügen</button>
+        </form>
+        <div class="hint">Alles wird automatisch gespeichert (localStorage). Kein Server nötig.</div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    // --- Storage Keys ---
+    const KEY = "finanztool_v1";
+
+    // --- State ---
+    let state = {
+      incomes: [],
+      expenses: []
+    };
+
+    // --- Helpers ---
+    function save(){
+      localStorage.setItem(KEY, JSON.stringify(state));
+    }
+
+    function load(){
+      const raw = localStorage.getItem(KEY);
+      if(!raw) return;
+      try{
+        const parsed = JSON.parse(raw);
+        if(parsed && typeof parsed === "object"){
+          state.incomes = Array.isArray(parsed.incomes) ? parsed.incomes : [];
+          state.expenses = Array.isArray(parsed.expenses) ? parsed.expenses : [];
+        }
+      }catch(e){
+        // ignore corrupted storage
+      }
+    }
+
+    function uid(){
+      return Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+    }
+
+    // accepts "12,99" or "12.99" or "  12,99 € "
+    function parseEuro(input){
+      if(!input) return NaN;
+      const cleaned = input
+        .toString()
+        .trim()
+        .replaceAll("€","")
+        .replace(/\s/g,"")
+        .replace(/\./g, "") // remove thousands dots (e.g. 1.234,56)
+        .replace(",", "."); // decimal comma to dot
+
+      const n = Number(cleaned);
+      return Number.isFinite(n) ? n : NaN;
+    }
+
+    function formatEuro(n){
+      return n.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
+    }
+
+    function sum(arr){
+      return arr.reduce((a, x) => a + (Number(x.amount) || 0), 0);
+    }
+
+    // --- DOM ---
+    const incomeList = document.getElementById("incomeList");
+    const expenseList = document.getElementById("expenseList");
+
+    const sumIncomeEl = document.getElementById("sumIncome");
+    const sumExpenseEl = document.getElementById("sumExpense");
+    const saldoEl = document.getElementById("saldo");
+
+    const incomeForm = document.getElementById("incomeForm");
+    const expenseForm = document.getElementById("expenseForm");
+
+    const incomeName = document.getElementById("incomeName");
+    const incomeAmount = document.getElementById("incomeAmount");
+    const expenseName = document.getElementById("expenseName");
+    const expenseAmount = document.getElementById("expenseAmount");
+
+    // --- Render ---
+    function renderList(el, items, kind){
+      el.innerHTML = "";
+
+      if(items.length === 0){
+        const empty = document.createElement("div");
+        empty.className = "empty";
+        empty.textContent = "Noch keine Einträge.";
+        el.appendChild(empty);
+        return;
+      }
+
+      // newest first
+      const ordered = [...items].sort((a,b) => (b.createdAt||0) - (a.createdAt||0));
+
+      for(const item of ordered){
+        const row = document.createElement("div");
+        row.className = "row";
+
+        const name = document.createElement("div");
+        name.className = "name";
+        name.textContent = item.name;
+
+        const amount = document.createElement("div");
+        amount.className = "amount " + kind;
+        amount.textContent = formatEuro(item.amount);
+
+        const del = document.createElement("button");
+        del.className = "del";
+        del.type = "button";
+        del.textContent = "Löschen";
+        del.addEventListener("click", () => {
+          if(kind === "income"){
+            state.incomes = state.incomes.filter(x => x.id !== item.id);
+          }else{
+            state.expenses = state.expenses.filter(x => x.id !== item.id);
+          }
+          save();
+          render();
+        });
+
+        row.appendChild(name);
+        row.appendChild(amount);
+        row.appendChild(del);
+        el.appendChild(row);
+      }
+    }
+
+    function render(){
+      renderList(incomeList, state.incomes, "income");
+      renderList(expenseList, state.expenses, "expense");
+
+      const inc = sum(state.incomes);
+      const exp = sum(state.expenses);
+      const saldo = inc - exp;
+
+      sumIncomeEl.textContent = formatEuro(inc);
+      sumExpenseEl.textContent = formatEuro(exp);
+      saldoEl.textContent = formatEuro(saldo);
+
+      saldoEl.classList.remove("pos","neg");
+      saldoEl.classList.add(saldo >= 0 ? "pos" : "neg");
+    }
+
+    // --- Add handlers ---
+    function addEntry(kind, nameInput, amountInput){
+      const name = (nameInput.value || "").trim();
+      const amount = parseEuro(amountInput.value);
+
+      if(!name){
+        nameInput.focus();
+        return;
+      }
+      if(!Number.isFinite(amount) || amount <= 0){
+        amountInput.focus();
+        return;
+      }
+
+      const entry = {
+        id: uid(),
+        name,
+        amount,
+        createdAt: Date.now()
+      };
+
+      if(kind === "income") state.incomes.push(entry);
+      if(kind === "expense") state.expenses.push(entry);
+
+      save();
+      render();
+
+      nameInput.value = "";
+      amountInput.value = "";
+      nameInput.focus();
+    }
+
+    incomeForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      addEntry("income", incomeName, incomeAmount);
+    });
+
+    expenseForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      addEntry("expense", expenseName, expenseAmount);
+    });
+
+    // --- Init ---
+    load();
+    render();
+    incomeName.focus();
+  </script>
+</body>
+</html>
